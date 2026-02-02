@@ -1,0 +1,39 @@
+#!/bin/bash
+
+ARCHIVO_ACCESOS="genomes_2000_74k-75.txt"
+DIR_SALIDA="mags_descargados_74k-75k"
+
+mkdir -p "$DIR_SALIDA"
+
+echo "Searching for the missing genome"
+
+while read -r ACC; do
+    # Remove whitespace
+    ACC_LIMPIO=$(echo "$ACC" | tr -d '[:space:]')
+    
+    if [ -z "$ACC_LIMPIO" ]; then
+        continue
+    fi
+    
+    ARCHIVO_ZIP="$DIR_SALIDA/${ACC_LIMPIO}.zip"
+    
+    # If the file does NOT exist, it is the missing one
+    if [ ! -f "$ARCHIVO_ZIP" ]; then
+        echo "Found Downloading $ACC_LIMPIO"
+        
+        # Download the missing genome
+        datasets download genome accession "$ACC_LIMPIO" --filename "$ARCHIVO_ZIP"
+        
+        if [ $? -eq 0 ] && [ -f "$ARCHIVO_ZIP" ]; then
+            echo "Successful download of $ACC_LIMPIO"
+            echo "Gmissing genome downloaded"
+            exit 0
+        else
+            echo " Error downloading $ACC_LIMPIO"
+            exit 1
+        fi
+    fi
+    
+done < "$ARCHIVO_ACCESOS"
+
+echo "All the genomes have already been downloaded"
